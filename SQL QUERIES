@@ -1,0 +1,82 @@
+CREATE TABLE  combined_data AS 
+
+SELECT * FROM Divvy_Trips_2019_Q2
+UNION ALL
+
+SELECT * FROM Divvy_Trips_2019_Q3
+UNION ALL
+
+SELECT * FROM Divvy_Trips_2019_Q4
+UNION ALL
+
+SELECT * FROM Divvy_Trips_2020_Q1
+
+UPDATE combined_data
+SET member_casual = 'member'
+WHERE member_casual = 'Subscriber';
+
+
+
+UPDATE combined_data
+SET member_casual = 'casual'
+WHERE member_casual = 'Customer';
+
+
+UPDATE combined_data
+SET ride_date = strftime('%Y-%m-%d', started_at),
+    ride_month = strftime('%m', started_at),
+    ride_year = strftime('%Y', started_at),
+    ride_day = strftime('%w', started_at);
+	
+UPDATE combined_data
+SET day_of_week = CASE
+    WHEN strftime('%w', started_at) = '0' THEN 'Sunday'
+    WHEN strftime('%w', started_at) = '1' THEN 'Monday'
+    WHEN strftime('%w', started_at) = '2' THEN 'Tuesday'
+    WHEN strftime('%w', started_at) = '3' THEN 'Wednesday'
+    WHEN strftime('%w', started_at) = '4' THEN 'Thursday'
+    WHEN strftime('%w', started_at) = '5' THEN 'Friday'
+    WHEN strftime('%w', started_at) = '6' THEN 'Saturday'
+    ELSE 'Unknown'
+END;
+
+ALTER TABLE combined_data
+ADD COLUMN ride_length INTEGER;
+
+UPDATE combined_data
+SET ride_length = strftime('%s', ended_at) - strftime('%s', started_at);
+
+DELETE FROM combined_data
+WHERE ride_length < 0
+
+
+--descriptive analysis on ride_length
+SELECT avg(ride_length) AS average_ride_length,
+min(ride_length) AS minimum_ride_length,
+max(ride_length) AS maximum_ride_length
+FROM combined_data;
+
+SELECT member_casual, avg(ride_length) AS average_ride_length
+FROM combined_data
+GROUP BY member_casual;
+
+SELECT member_casual, avg(ride_length) AS average_ride_length, day_of_the_week
+FROM combined_data
+GROUP BY member_casual, day_of_the_week
+ORDER BY
+    CASE day_of_the_week
+        WHEN 'Sunday' THEN 1
+        WHEN 'Monday' THEN 2
+        WHEN 'Tuesday' THEN 3
+        WHEN 'Wednesday' THEN 4
+        WHEN 'Thursday' THEN 5
+        WHEN 'Friday' THEN 6
+        WHEN 'Saturday' THEN 7
+    END;
+	
+--calculating the number of rides for users by day_of_the_week
+SELECT member_casual, day_of_the_week, COUNT(*) AS number_of_rides,avg(ride_length) AS average_ride_length 
+FROM combined_data
+GROUP BY member_casual, day_of_the_week
+ORDER BY member_casual, day_of_the_week;
+
