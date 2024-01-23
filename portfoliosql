@@ -1,0 +1,117 @@
+SELECT * 
+FROM covidDeaths;
+
+SELECT location, total_cases, new_cases,total_deaths, population, date_of
+FROM covidDeaths;
+
+-- Mortality rate analysis
+
+SELECT
+    location,
+    total_cases,
+    total_deaths,
+    population,
+    CAST(total_deaths AS REAL) / CAST(total_cases AS REAL) * 100 AS mortality_rate
+FROM
+    covidDeaths;
+	
+-- descriptive statistics on mortality rate
+
+
+SELECT location, average_mortality_rate
+  FROM(
+SELECT 
+    location, 
+    AVG(CAST(total_deaths AS REAL) / NULLIF(CAST(total_cases AS REAL), 0)) * 100 AS average_mortality_rate
+FROM 
+    covidDeaths
+GROUP BY 
+    location
+)
+ORDER BY 
+    average_mortality_rate DESC;
+
+	
+
+SELECT
+    location,
+    total_cases,
+    population,
+    CAST(total_cases AS REAL) / CAST(population AS REAL) * 100 AS mortality_rate
+FROM
+    covidDeaths;
+	
+-- looking at countries with highest infection rate versus population
+
+SELECT
+    location,
+    max(total_cases) as highest_infection,
+    population,
+    max(CAST(total_cases AS REAL) / CAST(population AS REAL) * 100) AS death_percentage
+FROM
+    covidDeaths
+	
+WHERE continent is not NULL
+
+GROUP BY 
+     location,
+	 population
+
+ORDER BY 
+     death_percentage  DESC;
+	
+-- showing countries with highest death count by population
+
+SELECT 
+    location,
+	sum(total_deaths) as death_totals,
+	population
+FROM 
+    covidDeaths
+WHERE 
+    continent is not NULL
+GROUP BY 
+     location,
+	 population
+ 
+ORDER by
+     death_totals DESC;
+
+-- breaking death counts by continents
+
+SELECT 
+   continent,
+   sum(total_deaths) as death_totals
+   
+FROM
+   covidDeaths
+ WHERE continent is not NULL
+ 
+group by
+    continent
+ORDER by 
+     death_totals desc;
+	 
+	 
+	 
+SELECT 
+    strftime('%Y-%m-%d %H:%M:%S', date_of) AS formatted_datetime,
+	sum(total_deaths) as death_totals,
+	max(CAST(total_cases AS REAL) / CAST(population AS REAL) * 100) AS death_percentage
+	
+FROM
+   covidDeaths
+WHERE continent is not NULL
+GROUP by 
+
+   formatted_datetime;
+ 
+--looking at total population versus vaccination
+ 
+SELECT dea.continent, dea.location, dea.date_of, dea.population, vea.new_vaccinations,
+sum(vea.new_vaccinations) OVER (PARTITION by dea.location)
+
+FROM covidDeaths dea
+JOIN covidVaccination vea
+on dea.location = vea.location
+AND dea.date_of = vea.date_of;
