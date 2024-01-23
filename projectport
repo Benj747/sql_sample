@@ -1,0 +1,126 @@
+SELECT
+    Genre,
+    SUBSTR(Genre, 1, INSTR(Genre || ',', ',') - 1) AS FirstGenre
+FROM
+    imdb_top_1000;
+	
+	
+
+
+
+UPDATE imdb_top_1000
+SET 
+   FirstGenre = SUBSTR(Genre, 1, INSTR(Genre || ',', ',') - 1);
+   
+--genre analysis
+SELECT CAST( sum(No_of_Votes)as INTEGER) as maximum_gross,
+        FirstGenre
+FROM imdb_top_1000
+GROUP BY FirstGenre
+ORDER by maximum_gross DESC;
+---
+
+
+--genre analysis
+SELECT max(Gross) as maximum_gross,
+        FirstGenre
+FROM imdb_top_1000
+GROUP BY FirstGenre
+ORDER by maximum_gross DESC;
+
+
+
+--- number of movies versus Released_Year
+
+
+SELECT 
+  count(Series_Title) as number_of_movies,
+ Released_Year
+
+FROM 
+   imdb_top_1000
+GROUP BY
+    Released_Year
+ORDER BY number_of_movies DESC;	
+
+-- looking at the number of different Genre released in 2014.
+
+SELECT 
+    count(FirstGenre) as number_of_Genre,
+	FirstGenre,
+	sum(No_of_Votes) AS VOTES
+FROM imdb_top_1000
+WHERE Released_Year = 2014
+GROUP BY
+    FirstGenre
+ORDER BY VOTES DESC;
+
+	
+SELECT 
+   Released_Year,
+   sum(IMDB_Rating) AS SUM_OF_RATING,  
+   
+FROM imdb_top_1000
+GROUP BY 
+    Released_Year
+
+ORDER BY 
+      SUM_OF_RATING DESC;
+	  
+	  
+--- DETERMINING TOP DIRECTORS
+
+SELECT DISTINCT Director
+FROM imdb_top_1000;
+
+-- DETERMINING TOP TEN DIRECTORS BASED ON VOTES
+
+SELECT 
+
+   Director,
+   sum(No_of_Votes) AS votes_sum
+   
+FROM imdb_top_1000
+
+GROUP by
+    Director
+	
+ORDER BY 
+    votes_sum DESC
+LIMIT 10;
+
+
+-- checking star actors effect
+
+
+SELECT Star1,
+       No_of_Votes
+FROM imdb_top_1000
+ORDER BY 
+      No_of_Votes DESC;
+	  
+	 
+SELECT Star1,
+       count(Series_Title) AS number_of_movies,
+	   max(No_of_Votes) as highest
+FROM 
+     imdb_top_1000
+group by Star1
+ORDER by
+     highest DESC
+	 
+LIMIT 10;
+	 
+
+	 
+SELECT Star1,
+       count(Series_Title) AS number_of_movies,
+	   sum(No_of_Votes) as sum_of_votes
+FROM 
+     imdb_top_1000
+group by Star1
+ORDER by
+     sum_of_votes DESC
+	 
+LIMIT 10;
+	 
