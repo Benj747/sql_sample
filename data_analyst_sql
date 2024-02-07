@@ -1,0 +1,121 @@
+CREATE TEMP TABLE job_number
+AS
+SELECT JobTitle,
+       count(*) AS no_of_jobs
+FROM data_analyst_job
+
+GROUP BY JobTitle;
+
+
+CREATE TEMP TABLE true_number
+AS
+SELECT JobTitle,
+       count(*) AS no_of_true
+FROM data_analyst_job
+WHERE Hired = 'TRUE'
+GROUP BY JobTitle;
+
+
+CREATE temp TABLE false_number
+as 
+SELECT JobTitle,
+       count(*) AS no_of_false
+FROM data_analyst_job
+WHERE Hired = 'FALSE'
+GROUP BY JobTitle;
+
+
+SELECT   false_number.JobTitle, false_number.no_of_false, true_number.no_of_true, 
+         (true_number.no_of_true + false_number.no_of_false) AS JOB_TOTAL
+FROM false_number 
+JOIN
+    true_number
+on	
+true_number.JobTitle = false_number.JobTitle;	
+      
+	  
+
+SELECT JobLocation,
+       count(*) as no_of_jobs
+FROM data_analyst_job
+GROUP by JobLocation
+ORDER by no_of_jobs DESC;
+
+
+
+-- Update the new column with the month names
+UPDATE data_analyst_job
+SET Month =
+    CASE
+        WHEN strftime('%m', Date_of) = '01' THEN 'January'
+        WHEN strftime('%m', Date_of) = '02' THEN 'February'
+        WHEN strftime('%m', Date_of) = '03' THEN 'March'
+        WHEN strftime('%m', Date_of) = '04' THEN 'April'
+        WHEN strftime('%m', Date_of) = '05' THEN 'May'
+        WHEN strftime('%m', Date_of) = '06' THEN 'June'
+        WHEN strftime('%m', Date_of) = '07' THEN 'July'
+        WHEN strftime('%m', Date_of) = '08' THEN 'August'
+        WHEN strftime('%m', Date_of) = '09' THEN 'September'
+        WHEN strftime('%m', Date_of) = '10' THEN 'October'
+        WHEN strftime('%m', Date_of) = '11' THEN 'November'
+        WHEN strftime('%m', Date_of) = '12' THEN 'December'
+    END;
+	
+	SELECT Month,
+	       count(*) AS total_jobs
+		   
+  FROM data_analyst_job
+  GROUP BY Month
+  ORDER by total_jobs DESC;
+  
+  
+  SELECT Month,
+	       count(*) AS total_jobs_true,
+		   Hired
+		   
+  FROM data_analyst_job
+  
+  WHERE Hired = 'TRUE' 
+  
+  GROUP BY Month
+  ORDER by total_jobs_true DESC;
+  
+  
+  SELECT Month,
+	       count(*) AS total_jobs_true,
+		   Hired
+		   
+  FROM data_analyst_job
+  
+  WHERE Hired = 'FALSE' 
+  
+  GROUP BY Month
+  ORDER by total_jobs_true DESC;
+  
+  
+ 
+-- Update the new column with the state abbreviation
+UPDATE data_analyst_job
+SET StateAbbreviation = SUBSTR(JobLocation, -2);
+
+
+SELECT StateAbbreviation,
+       count(*) as job_totals         
+from data_analyst_job
+group by StateAbbreviation
+order by job_totals DESC
+
+-- Add a new column to store the extracted first words
+ALTER TABLE data_analyst_job ADD COLUMN first_words_column TEXT;
+
+
+-- Update the new column with the extracted first words
+UPDATE data_analyst_job
+SET first_words_column = SUBSTR(REPLACE(JobLocation, ',', ''), 1, INSTR(REPLACE(JobLocation, ',', ''), ' ') - 1);
+
+
+  SELECT first_words_column,
+       count(*) as job_totals         
+from data_analyst_job
+group by first_words_column
+order by job_totals DESC
